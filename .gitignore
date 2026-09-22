@@ -1,0 +1,30 @@
+# local working files, never shipped
+/.first_plan.md
+/.session-trail/
+/.playwright-mcp/
+/*.draft.md
+/.claude/
+/CLAUDE.md
+/.philosophy.md
+
+# private gate fixtures (copy test/fixtures/prompts.example.json to prompts.json)
+/test/fixtures/prompts.json
+
+# secrets
+.env
+.env.*
+*.env
+
+# node
+node_modules/
+dist/
+*.tsbuildinfo
+npm-debug.log*
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+/docs/architecture.html

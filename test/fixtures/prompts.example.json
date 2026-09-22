@@ -1,0 +1,99 @@
+[
+  {
+    "prompt": "ok thanks, go ahead",
+    "expect": {
+      "decision": "quiet",
+      "reason": "low_worth"
+    }
+  },
+  {
+    "prompt": "add auth",
+    "expect": {
+      "decision": "analyze",
+      "flagged_any": [
+        "missing_context",
+        "unclear_instruction",
+        "missing_specification"
+      ]
+    }
+  },
+  {
+    "prompt": "rename this function to something clearer",
+    "expect": {
+      "decision": "quiet",
+      "reason": "low_worth"
+    }
+  },
+  {
+    "prompt": "make the payment roll back when it fails",
+    "expect": {
+      "decision": "analyze",
+      "risk_min": 3.0
+    }
+  },
+  {
+    "prompt": "build the table list page with sorting, filters, and a CSV export",
+    "expect": {
+      "decision": "analyze",
+      "flagged_any": [
+        "multiple_context",
+        "missing_specification"
+      ]
+    }
+  },
+  {
+    "prompt": "run the prod DB migration script",
+    "expect": {
+      "decision": "analyze",
+      "risk_min": 4.2
+    }
+  },
+  {
+    "prompt": "ok, do that",
+    "history": [
+      {
+        "user": "add login",
+        "assistant": "Two options: 1) session cookies with a server-side store, 2) JWT access and refresh tokens. Which one? And should social login be included?"
+      }
+    ],
+    "expect": {
+      "decision": "analyze",
+      "flagged_any": [
+        "unclear_instruction"
+      ]
+    }
+  },
+  {
+    "prompt": "fix that bug",
+    "history": [
+      {
+        "user": "why does the test fail?",
+        "assistant": "refresh() in src/auth/session.ts compares the expiry in milliseconds instead of seconds, so every session counts as expired. That is why two cases in session.test.ts fail."
+      }
+    ],
+    "expect": {
+      "decision": "analyze",
+      "risk_min": 3.5
+    }
+  },
+  {
+    "prompt": "send a verification code by email on sign-up",
+    "expect": {
+      "decision": "analyze",
+      "risk_min": 3.5
+    }
+  },
+  {
+    "prompt": "add a search box that queries the products table",
+    "expect": {
+      "decision": "analyze"
+    }
+  },
+  {
+    "prompt": "fix the typo recieve -> receive in the README",
+    "expect": {
+      "decision": "quiet",
+      "reason": "low_worth"
+    }
+  }
+]

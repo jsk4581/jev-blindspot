@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>jev-blindspot</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-name">jev-blindspot</span>
+      <span class="brand-tag" data-i18n="tagline">Good results start with good requests.</span>
+    </div>
+    <div class="topbar-right">
+      <span class="conn" id="conn" data-conn="connecting"><i class="dot"></i><span class="conn-label">connecting</span></span>
+      <label class="switch" title="show quiet turns">
+        <input type="checkbox" id="showQuiet" checked>
+        <span data-i18n="show_quiet">quiet turns</span>
+      </label>
+      <button type="button" class="ghost icon" id="settings" title="settings" aria-label="settings">⚙</button>
+      <button type="button" class="ghost icon" id="theme" title="theme: auto" aria-label="theme">◐</button>
+    </div>
+  </header>
+  <div id="banner" class="banner" hidden></div>
+
+  <div class="layout">
+    <nav class="rail" id="sessions" aria-label="sessions"></nav>
+    <main class="feed" id="turns">
+      <div class="empty" id="empty">
+        <p class="empty-title" data-i18n="empty_title">No prompts yet</p>
+        <p class="empty-sub" data-i18n="empty_sub">Submit a prompt in Claude Code or Codex and it appears here.</p>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="settingsDlg" class="dlg">
+    <form method="dialog" id="settingsForm">
+      <h2 data-i18n="settings">Settings</h2>
+      <p class="dlg-sub" data-i18n="settings_sub">Saved to ~/.config/jev-blindspot/env and applied to the running daemon.</p>
+      <label><span data-i18n="s_lang">Panel language</span>
+        <select id="uiLangSel"></select>
+      </label>
+      <label><span data-i18n="s_brain">Brain</span>
+        <select name="JEV_BRAIN">
+          <option value="auto" data-i18n="s_brain_auto">follow the agent (Claude Code → claude, Codex → codex)</option>
+          <option value="claude">claude -p</option>
+          <option value="codex">codex exec</option>
+        </select>
+      </label>
+      <label><span data-i18n="s_claude_model">Claude model</span>
+        <input name="JEV_BRAIN_MODEL" list="claudeModels" spellcheck="false" autocomplete="off">
+        <datalist id="claudeModels"><option value="sonnet"><option value="opus"><option value="haiku"></datalist>
+      </label>
+      <label><span data-i18n="s_codex_model">Codex model</span>
+        <input name="JEV_BRAIN_CODEX_MODEL" list="codexModels" spellcheck="false" autocomplete="off">
+        <datalist id="codexModels"></datalist>
+      </label>
+      <label><span data-i18n="s_codex_reasoning">Codex reasoning effort</span>
+        <select name="JEV_BRAIN_CODEX_REASONING">
+          <option>minimal</option><option>low</option><option>medium</option><option>high</option>
+        </select>
+      </label>
+      <label><span data-i18n="s_claude_effort">Claude effort</span>
+        <select name="JEV_BRAIN_CLAUDE_EFFORT">
+          <option>low</option><option>medium</option><option>high</option>
+        </select>
+      </label>
+      <label><span data-i18n="s_jev">jev model (gate)</span>
+        <input name="JEV_MODEL" spellcheck="false" autocomplete="off">
+      </label>
+      <p class="dlg-msg" id="settingsMsg"></p>
+      <div class="dlg-actions">
+        <button type="button" class="ghost" id="settingsCancel" data-i18n="cancel">Cancel</button>
+        <button type="submit" class="primary" id="settingsSave" data-i18n="save">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <template id="tpl-turn">
+    <article class="turn" data-state="pending">
+      <header class="turn-head">
+        <i class="dot state-dot"></i>
+        <span class="pill state-pill"></span>
+        <span class="pill risk-pill" hidden></span>
+        <span class="head-prompt"></span>
+        <time class="when"></time>
+      </header>
+      <div class="turn-body">
+        <blockquote class="prompt"></blockquote>
+        <div class="chips" hidden></div>
+        <p class="quiet-line" hidden></p>
+        <p class="err-line" hidden></p>
+        <div class="findings"></div>
+        <footer class="meta"></footer>
+      </div>
+    </article>
+  </template>
+
+  <template id="tpl-finding">
+    <details class="finding">
+      <summary>
+        <span class="pill sev"></span>
+        <span class="f-title"></span>
+        <span class="f-domain"></span>
+      </summary>
+      <div class="f-body">
+        <p class="f-why"></p>
+        <div class="f-suggest" hidden>
+          <pre></pre>
+          <button type="button" class="ghost copy"></button>
+        </div>
+      </div>
+    </details>
+  </template>
+
+  <script src="/i18n.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+{
+  "name": "jev-blindspot",
+  "version": "0.1.0",
+  "description": "Shows what your Claude Code or Codex prompt did not think to consider. A side panel driven by a TypeSafe jev gate and a light model brain.",
+  "keywords": [
+    "claude-code",
+    "hook",
+    "prompt",
+    "jev",
+    "typesafe",
+    "sse",
+    "metacognition"
+  ],
+  "homepage": "https://github.com/jsk4581/jev-blindspot#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsk4581/jev-blindspot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jsk4581/jev-blindspot/issues"
+  },
+  "author": "jsk4581",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "os": [
+    "linux",
+    "darwin"
+  ],
+  "bin": {
+    "jev-blindspot": "bin/jev-blindspot.mjs"
+  },
+  "files": [
+    "bin/",
+    "dist/src/",
+    "web/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "npm run build && node --test dist/test/",
+    "start": "node dist/src/daemon/index.js",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "dependencies": {
+    "@typesafe-ai/sdk": "^0.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0"
+  }
+}
