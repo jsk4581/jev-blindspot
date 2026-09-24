@@ -1,6 +1,6 @@
 {
   "name": "jev-blindspot",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Shows what your Claude Code or Codex prompt did not think to consider. A side panel driven by a TypeSafe jev gate and a light model brain.",
   "keywords": [
     "claude-code",
