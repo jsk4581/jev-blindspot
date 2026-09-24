@@ -53,6 +53,13 @@ async function main(): Promise<void> {
   const handler = createHandler({ cfg, store, hub, pipeline, log, webDir, version: VERSION, startedAt: Date.now(), onShutdown: () => shutdown("api") });
   const servers = await listenAll(handler, cfg, log);
 
+  // The hook that spawned us exits at once, so it cannot clear its spawn lock itself.
+  try {
+    unlinkSync(PATHS.spawnLock);
+  } catch {
+    /* not held */
+  }
+
   drainSpool(pipeline, log);
 
   const ka = setInterval(() => hub.ping(), KEEPALIVE_MS);

@@ -4,7 +4,7 @@
 // for the `/blindspot` command, which is answered with a block decision.
 // Reads the hook JSON, POSTs it to the local daemon, and if the daemon is
 // down, spools the event and spawns the daemon detached. Always exits 0.
-import { existsSync, mkdirSync, openSync, closeSync, writeFileSync, renameSync, appendFileSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, openSync, closeSync, writeFileSync, renameSync, appendFileSync, readFileSync, statSync, unlinkSync } from "node:fs";
 import { request } from "node:http";
 import { spawn } from "node:child_process";
 import { homedir } from "node:os";
@@ -201,19 +201,25 @@ function spool(ev) {
   renameSync(tmp, join(spoolDir, name));
 }
 
+// A spawn lock older than this is left over from a spawn that never came up
+// (or a daemon that died before clearing it); the next hook takes it over.
+const SPAWN_LOCK_STALE_MS = 15_000;
+
 function spawnDaemon() {
   const lock = join(stateDir, "daemon.spawn.lock");
-  try {
-    // Only one concurrent hook spawns; the lock is cleared by whoever wins
-    // after a short grace so a crashed spawn does not wedge future starts.
-    const fd = openSync(lock, "wx", 0o600);
-    closeSync(fd);
-  } catch {
-    return "lock-held";
+  // Only one concurrent hook spawns. The hook exits right after, so it cannot
+  // clear the lock itself: the daemon removes it once it is listening, and a
+  // stale one is taken over here.
+  if (!takeLock(lock)) {
+    let age = 0;
+    try { age = Date.now() - statSync(lock).mtimeMs; } catch { age = Infinity; }
+    if (age < SPAWN_LOCK_STALE_MS) return "lock-held";
+    unlinkSafe(lock);
+    if (!takeLock(lock)) return "lock-held";
   }
   if (!existsSync(daemonEntry)) {
     log(`daemon entry missing: ${daemonEntry} (run npm run build)`);
-    try { unlinkSafe(lock); } catch {}
+    unlinkSafe(lock);
     return "no-build";
   }
   const child = spawn(process.execPath, [daemonEntry], {
@@ -223,8 +229,17 @@ function spawnDaemon() {
     env: { ...process.env, JEV_BLINDSPOT_DAEMON: "1" },
   });
   child.unref();
-  setTimeout(() => unlinkSafe(lock), 3000).unref();
   return "spawned";
+}
+
+function takeLock(lock) {
+  try {
+    const fd = openSync(lock, "wx", 0o600);
+    closeSync(fd);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function firstString(...xs) {
@@ -234,8 +249,7 @@ function firstString(...xs) {
 
 function unlinkSafe(p) {
   try {
-    // dynamic import keeps the top-level import list minimal
-    import("node:fs").then((fs) => fs.unlinkSync(p)).catch(() => {});
+    unlinkSync(p);
   } catch {
     /* ignore */
   }

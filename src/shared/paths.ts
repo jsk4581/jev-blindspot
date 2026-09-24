@@ -23,6 +23,10 @@ export const PATHS = {
   get lockFile() {
     return join(this.stateDir, "daemon.lock");
   },
+  /** taken by the hook that spawns the daemon; the daemon removes it once it is up */
+  get spawnLock() {
+    return join(this.stateDir, "daemon.spawn.lock");
+  },
   get daemonLog() {
     return join(this.stateDir, "daemon.log");
   },
