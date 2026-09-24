@@ -4,7 +4,6 @@
 window.JEV_I18N = {
   en: {
     name: "English",
-    tagline: "Good results start with good requests.",
     show_quiet: "quiet turns",
     empty_title: "No prompts yet",
     empty_sub: "Submit a prompt in Claude Code or Codex and it appears here.",
@@ -29,7 +28,6 @@ window.JEV_I18N = {
   },
   ko: {
     name: "한국어",
-    tagline: "좋은 결과는 좋은 요청에서 나온다.",
     show_quiet: "조용한 턴",
     empty_title: "아직 프롬프트가 없습니다",
     empty_sub: "Claude Code나 Codex에서 프롬프트를 보내면 여기에 나타납니다.",
@@ -54,7 +52,6 @@ window.JEV_I18N = {
   },
   ja: {
     name: "日本語",
-    tagline: "良い結果は良い依頼から始まる。",
     show_quiet: "静かなターン",
     empty_title: "まだプロンプトがありません",
     empty_sub: "Claude Code か Codex でプロンプトを送るとここに表示されます。",
@@ -79,7 +76,6 @@ window.JEV_I18N = {
   },
   "zh-Hans": {
     name: "简体中文",
-    tagline: "好的结果始于好的请求。",
     show_quiet: "安静的轮次",
     empty_title: "还没有提示词",
     empty_sub: "在 Claude Code 或 Codex 中提交提示词后会显示在这里。",
@@ -104,7 +100,6 @@ window.JEV_I18N = {
   },
   "zh-Hant": {
     name: "繁體中文",
-    tagline: "好的結果始於好的請求。",
     show_quiet: "安靜的回合",
     empty_title: "還沒有提示詞",
     empty_sub: "在 Claude Code 或 Codex 提交提示詞後會顯示在這裡。",
@@ -129,7 +124,6 @@ window.JEV_I18N = {
   },
   es: {
     name: "Español",
-    tagline: "Los buenos resultados empiezan con buenas peticiones.",
     show_quiet: "turnos silenciosos",
     empty_title: "Aún no hay prompts",
     empty_sub: "Envía un prompt en Claude Code o Codex y aparecerá aquí.",
@@ -154,7 +148,6 @@ window.JEV_I18N = {
   },
   fr: {
     name: "Français",
-    tagline: "Les bons résultats commencent par de bonnes demandes.",
     show_quiet: "tours silencieux",
     empty_title: "Pas encore de prompt",
     empty_sub: "Envoyez un prompt dans Claude Code ou Codex et il apparaîtra ici.",
@@ -179,7 +172,6 @@ window.JEV_I18N = {
   },
   de: {
     name: "Deutsch",
-    tagline: "Gute Ergebnisse beginnen mit guten Anfragen.",
     show_quiet: "stille Züge",
     empty_title: "Noch keine Prompts",
     empty_sub: "Sende einen Prompt in Claude Code oder Codex, dann erscheint er hier.",
@@ -204,7 +196,6 @@ window.JEV_I18N = {
   },
   pt: {
     name: "Português",
-    tagline: "Bons resultados começam com bons pedidos.",
     show_quiet: "turnos silenciosos",
     empty_title: "Ainda não há prompts",
     empty_sub: "Envie um prompt no Claude Code ou no Codex e ele aparece aqui.",
@@ -229,7 +220,6 @@ window.JEV_I18N = {
   },
   ru: {
     name: "Русский",
-    tagline: "Хороший результат начинается с хорошего запроса.",
     show_quiet: "тихие ходы",
     empty_title: "Промптов пока нет",
     empty_sub: "Отправьте промпт в Claude Code или Codex, и он появится здесь.",
@@ -254,7 +244,6 @@ window.JEV_I18N = {
   },
   it: {
     name: "Italiano",
-    tagline: "I buoni risultati iniziano da buone richieste.",
     show_quiet: "turni silenziosi",
     empty_title: "Ancora nessun prompt",
     empty_sub: "Invia un prompt in Claude Code o Codex e comparirà qui.",
