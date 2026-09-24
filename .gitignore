@@ -28,3 +28,10 @@ Thumbs.db
 .idea/
 .vscode/
 /docs/architecture.html
+
+# graft local graph cache: regenerable, not committed (run `graft build`).
+/graft/
+
+# local tooling config, not part of the product
+/.mcp.json
+/.ignore
