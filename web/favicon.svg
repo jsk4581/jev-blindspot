@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- A field of view with one segment missing: the blind spot. -->
+  <rect width="32" height="32" rx="7" fill="#0d1117"/>
+  <circle cx="16" cy="16" r="9" fill="none" stroke="#818cf8" stroke-width="3.5" stroke-linecap="round"
+          stroke-dasharray="42 15" transform="rotate(2 16 16)"/>
+  <circle cx="24.5" cy="8.5" r="3" fill="#fbbf24"/>
+</svg>
