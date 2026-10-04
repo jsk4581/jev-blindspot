@@ -43,6 +43,8 @@ export const GAP_KEYS = [
   "missing_specification",
   "unclear_instruction",
   "multiple_context",
+  // not part of the paper taxonomy: the request may stand on a more fundamental one
+  "deeper_problem",
 ] as const;
 export type GapKey = (typeof GAP_KEYS)[number];
 
@@ -89,6 +91,8 @@ export interface BrainResult {
   language: string;
   domains: string[];
   items: BrainItem[];
+  /** the more fundamental request, problem or question under this one; at most one, absent in older records */
+  deeper?: BrainItem[];
 }
 
 /** One turn as the panel sees it (also the in-memory store shape). */

@@ -220,6 +220,9 @@ button { font: inherit; color: inherit; }
 .findings { display: flex; flex-direction: column; }
 .findings:empty { display: none; }
 .findings-none { margin: 0; font-size: var(--fs-sm); color: var(--text-muted); }
+.findings-label { margin: 0 0 var(--s1); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent); }
+.finding.deeper { border-top: 0; border-left: 2px solid var(--accent); padding-left: var(--s2); margin-bottom: var(--s3); }
+.finding.deeper .sev { display: none; }
 
 .finding { border-top: 1px solid var(--border); }
 .finding:first-child { border-top: 0; }

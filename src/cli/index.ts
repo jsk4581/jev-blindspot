@@ -307,6 +307,7 @@ async function smoke(): Promise<void> {
     if (turn?.turn_id === ev.event_id && ["done", "quiet", "error", "gate_unavailable"].includes(turn.state)) {
       console.log(`turn ${turn.state} in ${(i + 1) * 500}ms; gate ${turn.gate_latency_ms}ms; brain ${turn.brain_ms ?? "-"}ms`);
       if (turn.gate_decision) console.log(`  decision ${turn.gate_decision.decision}${turn.gate_decision.reason ? "/" + turn.gate_decision.reason : ""}, flagged ${turn.gate_decision.flagged_gaps.join(", ") || "-"}`);
+      if (turn.result?.deeper?.length) for (const it of turn.result.deeper) console.log(`  deeper: ${it.title}`);
       if (turn.result) for (const it of turn.result.items) console.log(`  [${it.severity}] ${it.domain}: ${it.title}`);
       if (turn.error) console.log(`  error: ${turn.error.stage}: ${turn.error.message}`);
       return;

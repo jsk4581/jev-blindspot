@@ -5,7 +5,7 @@ import type { BrainItem, BrainResult, Severity } from "../shared/protocol.js";
 export const BRAIN_JSON_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["language", "domains", "items"],
+  required: ["language", "domains", "items", "deeper"],
   properties: {
     language: { type: "string", description: "BCP-47 tag of the request language, e.g. ko or en" },
     domains: {
@@ -31,6 +31,24 @@ export const BRAIN_JSON_SCHEMA = {
         },
       },
     },
+    deeper: {
+      type: "array",
+      maxItems: 1,
+      description: "The more fundamental request, problem or question this request stands on; empty when the request is already the right one",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["title", "why", "domain", "severity", "confidence"],
+        properties: {
+          title: { type: "string", maxLength: 60 },
+          why: { type: "string", maxLength: 400 },
+          suggestion: { type: "string", maxLength: 600 },
+          domain: { type: "string", maxLength: 40 },
+          severity: { type: "string", enum: ["note", "worth-asking", "likely-costly"] },
+          confidence: { type: "number", minimum: 0, maximum: 1 },
+        },
+      },
+    },
   },
 } as const;
 
@@ -39,7 +57,7 @@ export const BRAIN_JSON_SCHEMA = {
 export const BRAIN_JSON_SCHEMA_STRICT = {
   type: "object",
   additionalProperties: false,
-  required: ["language", "domains", "items"],
+  required: ["language", "domains", "items", "deeper"],
   properties: {
     language: { type: "string", description: "BCP-47 tag of the request language, e.g. ko or en" },
     domains: {
@@ -50,6 +68,23 @@ export const BRAIN_JSON_SCHEMA_STRICT = {
     items: {
       type: "array",
       description: "At most 5 items, most severe first",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["title", "why", "suggestion", "domain", "severity", "confidence"],
+        properties: {
+          title: { type: "string", description: "under 60 characters" },
+          why: { type: "string", description: "under 400 characters" },
+          suggestion: { type: ["string", "null"], description: "under 600 characters; null when you have nothing concrete" },
+          domain: { type: "string", description: "under 40 characters" },
+          severity: { type: "string", enum: ["note", "worth-asking", "likely-costly"] },
+          confidence: { type: "number", description: "0 to 1" },
+        },
+      },
+    },
+    deeper: {
+      type: "array",
+      description: "At most 1 entry: the more fundamental request, problem or question this request stands on; empty when the request is already the right one",
       items: {
         type: "object",
         additionalProperties: false,
@@ -112,7 +147,11 @@ export function normalise(p: any): BrainResult {
   const domains = Array.isArray(p?.domains)
     ? p.domains.filter((d: unknown) => typeof d === "string" && d.trim()).map((d: string) => d.trim().slice(0, 40)).slice(0, 4)
     : [];
-  const items: BrainItem[] = (Array.isArray(p?.items) ? p.items : [])
+  return { language, domains, items: normaliseItems(p?.items, 5), deeper: normaliseItems(p?.deeper, 1) };
+}
+
+function normaliseItems(raw: unknown, max: number): BrainItem[] {
+  return (Array.isArray(raw) ? raw : [])
     .filter((it: any) => it && typeof it.title === "string" && typeof it.why === "string")
     .map((it: any): BrainItem => ({
       title: it.title.trim().slice(0, 60),
@@ -122,9 +161,8 @@ export function normalise(p: any): BrainResult {
       severity: SEVERITIES.includes(it.severity) ? it.severity : "note",
       confidence: typeof it.confidence === "number" && Number.isFinite(it.confidence) ? Math.min(1, Math.max(0, it.confidence)) : 0.5,
     }))
-    .slice(0, 5)
+    .slice(0, max)
     .sort((a: BrainItem, b: BrainItem) => SEV_RANK[a.severity] - SEV_RANK[b.severity] || b.confidence - a.confidence);
-  return { language, domains, items };
 }
 
 function firstBalancedObject(s: string): string | undefined {

@@ -40,3 +40,11 @@ test("normalise truncates and defaults", () => {
   assert.equal(r.items[0].domain, "general");
   assert.equal(r.language, "en");
 });
+
+test("deeper parses like items, capped at 1, absent means empty", () => {
+  const r = normalise({ ...payload, deeper: [{ title: "d1", why: "w", domain: "d", severity: "note", confidence: 0.6, suggestion: "s" }, { title: "d2", why: "w", domain: "d", severity: "note", confidence: 0.6 }] });
+  assert.equal(r.deeper?.length, 1);
+  assert.equal(r.deeper?.[0].title, "d1");
+  assert.equal(r.items.length, 2);
+  assert.deepEqual(normalise(payload).deeper, []);
+});

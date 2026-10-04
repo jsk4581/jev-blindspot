@@ -3,9 +3,10 @@
 // exactly was not considered are open-ended and belong to the brain.
 //
 // Two judgments decide: `worth_checking` (would an expert see something the
-// author did not think of) and `risk` (how far the work reaches). The four
-// gap flags follow the taxonomy in arXiv 2501.11709 and are hints only: they
-// become panel chips and brain input, never a decision.
+// author did not think of) and `risk` (how far the work reaches). The other
+// flags are hints only: they become panel chips and brain input, never a
+// decision. Four follow the taxonomy in arXiv 2501.11709; `deeper_problem`
+// asks whether the request stands on a more fundamental one.
 import { noul, score } from "@typesafe-ai/sdk";
 import { GAP_KEYS, type GapKey } from "../shared/protocol.js";
 
@@ -18,6 +19,8 @@ const GAP_INSTRUCTIONS: Record<GapKey, string> = {
     "Two competent assistants given `prompt` and `history` would likely build materially different things, not merely differ in details, because the request can be read in more than one way. This includes a `prompt` that answers the last `assistant` reply in `history` when that reply offered several options or asked several questions and `prompt` does not say which one it accepts.",
   multiple_context:
     "`prompt` asks for two or more separable pieces of work that an expert would plan, review, or deliver separately, and it does not say which comes first or whether they must land together.",
+  deeper_problem:
+    "`prompt` reads as a means rather than the end: a step toward a larger goal, a workaround for a symptom, or a question whose real answer depends on a more fundamental question the author has not asked. An expert would first ask what the author is ultimately trying to achieve or fix, and neither `prompt` nor `history` says it.",
 };
 
 export const RISK_LEVELS = [

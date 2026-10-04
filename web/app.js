@@ -228,7 +228,12 @@
 
     const findings = $(".findings", node);
     if (t.result && t.state === "done") {
-      if (!t.result.items.length) {
+      if (t.result.deeper && t.result.deeper.length) {
+        const h = document.createElement("p"); h.className = "findings-label deeper"; h.textContent = L.deeper;
+        findings.appendChild(h);
+        for (const it of t.result.deeper) { const n = renderFinding(it, L); n.classList.add("deeper"); n.open = true; findings.appendChild(n); }
+      }
+      if (!t.result.items.length && !(t.result.deeper && t.result.deeper.length)) {
         const p = document.createElement("p"); p.className = "findings-none"; p.textContent = L.none;
         findings.appendChild(p);
       }

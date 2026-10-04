@@ -75,7 +75,7 @@ returns a positive decision.
 
 **Gate: TypeSafe jev, one request.** [jev](https://typesafe.ai) answers a fixed
 set of typed questions about a state object and returns probabilities instead
-of text. The gate sends six questions in one call. Two of them decide:
+of text. The gate sends seven questions in one call. Two of them decide:
 
 - `worth_checking`: does this request have a blind spot? Is there something
 anyone who knows this kind of work would have considered, that the request
@@ -85,11 +85,13 @@ left out on purpose do not count.
 push, real sends, production data). High risk lowers the `worth_checking`
 bar.
 
-The other four are the knowledge-gap taxonomy from *Towards Detecting Prompt
+Four more are the knowledge-gap taxonomy from *Towards Detecting Prompt
 Knowledge Gaps for Improved LLM-guided Issue Resolution*
 ([arXiv:2501.11709](https://arxiv.org/abs/2501.11709)): missing context,
-missing specification, unclear instruction, several requests bundled. They
-never decide anything. They appear as chips on the card as soon as the gate
+missing specification, unclear instruction, several requests bundled. The
+last, `deeper_problem`, asks whether the request reads as a means rather than
+the end: a step toward a larger goal, a workaround for a symptom, or a question
+that depends on a more fundamental one. These five never decide anything. They appear as chips on the card as soon as the gate
 returns and go to the second stage as hints.
 
 Only questions with a closed answer set go to jev. Which kinds of knowledge the
@@ -112,6 +114,10 @@ touches, and the effort level is the only brake. It decides for itself which
 kinds of knowledge the request calls for, then returns up to five items: the  
 consideration that is absent, why it matters for this request, and a sentence  
 you can paste into the next prompt.  
+When the request stands on a more fundamental request, problem or question
+the author has not asked, the brain also names that one, at most one per turn,
+and the card shows it above the blind spots as the deeper question. Most turns
+have none.  
 Latency depends on your plan, region and how much the model decides to read;  
 the panel shows the analyzing state as soon as the gate passes.
 
