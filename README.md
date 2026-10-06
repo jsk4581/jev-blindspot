@@ -17,14 +17,11 @@ anything to the agent's context.
 
 <p>
   <img src="https://raw.githubusercontent.com/jsk4581/jev-blindspot/main/docs/panel.png" alt="The jev-blindspot panel in a browser tab">
-  <br>
-  The panel in a browser tab 
 </p>
 
+Also supports [Claude Code Mods](https://github.com/anthropics/claude-code/tree/main/mods), so you can view it directly in the CLI.
 <p>
   <img src="https://raw.githubusercontent.com/jsk4581/jev-blindspot/main/docs/band.png" alt="The jev-blindspot band above the Claude Code prompt">
-  <br>
-  In Claude Code (optional mod)
 </p>
 
 ## Quick start
