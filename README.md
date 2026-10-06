@@ -17,6 +17,8 @@ anything to the agent's context.
 
 ![panel](https://raw.githubusercontent.com/jsk4581/jev-blindspot/main/docs/panel.png)
 
+![The jev-blindspot band above the Claude Code prompt, listing three blind spots](https://raw.githubusercontent.com/jsk4581/jev-blindspot/main/docs/band.png)
+
 ## Quick start
 
 Node 20 or newer, a [TypeSafe](https://typesafe.ai) API key, and Claude Code or
@@ -201,11 +203,11 @@ newer, the `jev-blindspot-band` mod draws a summary of the last prompt in the
 band above the prompt box, so you can see the result without leaving the
 terminal:
 
-![The jev-blindspot band above the Claude Code prompt, listing three blind spots](docs/band.png)
+![The jev-blindspot band above the Claude Code prompt, listing three blind spots](https://raw.githubusercontent.com/jsk4581/jev-blindspot/main/docs/band.png)
 
 It shows "checking" as soon as you send a prompt, then the blind spot count,
-the deeper question when there is one, and the top findings, with a link to
-the panel for the rest. The mod only reads results from the local daemon: the
+the deeper question when there is one, and every finding, with a link to the
+panel for the full card. The mod only reads results from the local daemon: the
 hook above still sends the prompt, and the mod changes nothing Claude reads.
 Install it from this repository:
 

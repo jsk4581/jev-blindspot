@@ -8,8 +8,8 @@
 //   once and the poll below runs until that prompt's turn settles.
 // session.start: read the port and panel address, show the session's last turn,
 //   and start the poll.
-// ui.render (AbovePrompt): one header line, then the deeper question and the top
-//   findings, each cut to one row. Other mods' band content is kept below ours.
+// ui.render (AbovePrompt): one header line, then the deeper question and every
+//   finding, each cut to one row. Other mods' band content is kept below ours.
 //
 // The host reads on(...) and $.noun.method(...) from source, so they are spelled
 // literally, and helpers that take $ are top-level functions.
@@ -20,7 +20,6 @@ const ACTIVE_LIMIT_MS = 180_000;
 // The hook stamps the turn when it runs, which may be a little before this mod
 // sees the prompt; a turn this much older than the submit still counts as it.
 const SUBMIT_SLACK_MS = 5000;
-const SHOWN_FINDINGS = 3;
 const SETTLED = new Set(["quiet", "gate_unavailable", "done", "error", "cancelled"]);
 const GAP_LABEL = {
   missing_context: "context",
@@ -82,7 +81,7 @@ export function register(on) {
       return next(e);
     }
     const { Box, Text, Link } = $.ui.resolve(e);
-    const ours = band(Box, Text, Link, e.props?.maxRows ?? 6);
+    const ours = band(Box, Text, Link);
     const theirs = await next(e);
     return Box({ flexDirection: "column", children: theirs ? [ours, theirs] : [ours] });
   });
@@ -154,7 +153,7 @@ function isCommand(text) {
   return /^\s*\//.test(String(text ?? ""));
 }
 
-function band(Box, Text, Link, maxRows) {
+function band(Box, Text, Link) {
   const pad = (rows) => Box({ key: "band", flexDirection: "column", paddingX: 1, children: rows });
   const head = (mark, color, words, extra = []) =>
     Box({
@@ -204,13 +203,13 @@ function band(Box, Text, Link, maxRows) {
       Text({ key: "deeper", wrap: "truncate-end", children: [Text({ key: "dl", color: "magenta", children: "  ↳ deeper  " }), Text({ key: "dt", children: deeper.title })] }),
     );
   }
-  const room = Math.max(0, Math.min(SHOWN_FINDINGS, maxRows - rows.length - 1));
-  for (const [i, it] of items.slice(0, room).entries()) {
+  // Every finding is shown (the brain returns at most five); a band taller than
+  // the terminal allows scrolls.
+  for (const [i, it] of items.entries()) {
     const s = SEVERITY[it.severity] ?? SEVERITY.note;
     rows.push(
       Text({ key: `i${i}`, wrap: "truncate-end", children: [Text({ key: "m", color: s.color, bold: true, children: `  ${s.mark} ` }), Text({ key: "t", children: it.title }), Text({ key: "d", dimColor: true, children: `  ${it.domain}` })] }),
     );
   }
-  if (items.length > room) rows.push(Text({ key: "more", dimColor: true, children: `    + ${items.length - room} more in the panel` }));
   return pad(rows);
 }
