@@ -24,6 +24,22 @@ Now supports [Claude Code Mods](https://github.com/anthropics/claude-code/tree/m
   <img src="https://raw.githubusercontent.com/jsk4581/jev-blindspot/main/docs/band.png" alt="The jev-blindspot band above the Claude Code prompt">
 </p>
 
+## Contents
+
+- [Quick start](#quick-start)
+- [Why](#why)
+- [How it works](#how-it-works)
+- [What you see](#what-you-see)
+- [Install](#install)
+- [Use](#use)
+- [Turning it off](#turning-it-off)
+- [What leaves your machine](#what-leaves-your-machine)
+- [Configuration](#configuration)
+- [What it costs](#what-it-costs)
+- [Known limits](#known-limits)
+- [Development](#development)
+- [License](#license)
+
 ## Quick start
 
 Node 20 or newer, a [TypeSafe](https://typesafe.ai) API key, and Claude Code or
