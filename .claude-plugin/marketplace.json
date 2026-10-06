@@ -1,0 +1,16 @@
+{
+  "name": "jev-blindspot",
+  "owner": {
+    "name": "jsk4581"
+  },
+  "metadata": {
+    "description": "jev-blindspot for Claude Code: a mod that shows the last prompt's blind spots in the band above the prompt."
+  },
+  "plugins": [
+    {
+      "name": "jev-blindspot-band",
+      "source": "./mod",
+      "description": "A summary of jev-blindspot in the band above the prompt: the blind spot count, the deeper question and the top findings."
+    }
+  ]
+}

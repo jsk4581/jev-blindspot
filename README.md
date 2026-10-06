@@ -196,6 +196,27 @@ hook answers it itself and blocks the prompt, so no model turn is spent.
 `/blindspot status` adds daemon counters. Prompts show a `claude` tag in the
 panel and their brain run is `claude -p` on your subscription.
 
+jev-blindspot also works as a Claude Code mod. With Claude Code 2.1.287 or
+newer, the `jev-blindspot-band` mod draws a summary of the last prompt in the
+band above the prompt box, so you can see the result without leaving the
+terminal:
+
+![The jev-blindspot band above the Claude Code prompt, listing three blind spots](docs/band.png)
+
+It shows "checking" as soon as you send a prompt, then the blind spot count,
+the deeper question when there is one, and the top findings, with a link to
+the panel for the rest. The mod only reads results from the local daemon: the
+hook above still sends the prompt, and the mod changes nothing Claude reads.
+Install it from this repository:
+
+```bash
+claude plugin marketplace add jsk4581/jev-blindspot
+claude plugin install jev-blindspot-band@jev-blindspot --scope user
+```
+
+It loads from the next session. Remove it with
+`claude plugin uninstall jev-blindspot-band@jev-blindspot --scope user`.
+
 ### Codex CLI
 
 The hook goes into `~/.codex/hooks.json`, and `install-hook` writes

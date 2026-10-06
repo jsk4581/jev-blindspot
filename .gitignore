@@ -1,11 +1,11 @@
-# local working files, never shipped
+# local working files, never shipped (unanchored: also inside mod/ and any subfolder)
 /.first_plan.md
-/.session-trail/
-/.playwright-mcp/
+.session-trail/
+.playwright-mcp/
 /*.draft.md
-/.claude/
-/CLAUDE.md
-/.philosophy.md
+.claude/
+CLAUDE.md
+.philosophy.md
 
 # private gate fixtures (copy test/fixtures/prompts.example.json to prompts.json)
 /test/fixtures/prompts.json
@@ -30,7 +30,7 @@ Thumbs.db
 /docs/architecture.html
 
 # graft local graph cache: regenerable, not committed (run `graft build`).
-/graft/
+graft/
 
 # local tooling config, not part of the product
 /.mcp.json

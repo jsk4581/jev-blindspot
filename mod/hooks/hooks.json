@@ -1,0 +1,6 @@
+{
+  "description": "jev-blindspot band: reads the local jev-blindspot daemon and draws a summary of the last prompt above the prompt box.",
+  "modules": [
+    "./blindspot-band.mjs"
+  ]
+}

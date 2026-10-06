@@ -1,0 +1,11 @@
+{
+  "name": "jev-blindspot-band",
+  "version": "0.1.0",
+  "description": "A one-glance summary of jev-blindspot in the band above the prompt: the blind spot count, the deeper question, and the top findings for the prompt you just sent.",
+  "author": {
+    "name": "jsk4581"
+  },
+  "homepage": "https://github.com/jsk4581/jev-blindspot#readme",
+  "license": "MIT",
+  "keywords": ["mods", "prompt", "blind-spot"]
+}
