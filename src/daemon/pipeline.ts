@@ -19,7 +19,7 @@ import type { SessionStore } from "./store.js";
 import type { SseHub } from "./sse.js";
 
 export class Pipeline {
-  private queue = new BrainQueue(2);
+  private queue: BrainQueue;
   private seen = new Set<string>();
   private lastActivity = Date.now();
   stats = { events: 0, gate_ok: 0, gate_fail: 0, analyzed: 0, brain_ok: 0, brain_fail: 0, gate_ms: [] as number[], brain_ms: [] as number[] };
@@ -29,7 +29,9 @@ export class Pipeline {
     private store: SessionStore,
     private hub: SseHub,
     private log: FileLogger,
-  ) {}
+  ) {
+    this.queue = new BrainQueue(cfg.brainConcurrency);
+  }
 
   get activeBrains(): number {
     return this.queue.active;

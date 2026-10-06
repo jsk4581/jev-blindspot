@@ -15,6 +15,8 @@ export interface Config {
   gateTimeoutMs: number;
   gateFallback: "skip" | "brain";
   brainTimeoutMs: number;
+  /** brain runs at once across all sessions; one session's runs always go in order */
+  brainConcurrency: number;
   brainModel: string;
   /** which runner: auto follows the agent the prompt came from */
   brain: "auto" | "claude" | "codex";
@@ -177,6 +179,7 @@ function build(): Config {
     gateTimeoutMs: num("JEV_GATE_TIMEOUT_MS", 2000),
     gateFallback: env.JEV_GATE_FALLBACK === "brain" ? "brain" : "skip",
     brainTimeoutMs: num("JEV_BRAIN_TIMEOUT_MS", 90_000),
+    brainConcurrency: Math.max(1, Math.floor(num("JEV_BRAIN_CONCURRENCY", 2))),
     brainModel: env.JEV_BRAIN_MODEL || "sonnet",
     brain: env.JEV_BRAIN === "claude" || env.JEV_BRAIN === "codex" ? env.JEV_BRAIN : "auto",
     brainCodexModel: env.JEV_BRAIN_CODEX_MODEL || "gpt-5.6-luna",

@@ -6,7 +6,7 @@ import { DEFAULT_THRESHOLDS, type Config } from "../src/shared/config.js";
 
 const cfg: Config = {
   port: 1, bindExtra: [], allowedHosts: [], idleMinutes: 1, jevModel: "x", gateTimeoutMs: 1, gateFallback: "skip",
-  brainTimeoutMs: 1, brainModel: "sonnet", brain: "auto", brainCodexModel: "gpt-5.6-luna", brainCodexReasoning: "low",
+  brainTimeoutMs: 1, brainConcurrency: 2, brainModel: "sonnet", brain: "auto", brainCodexModel: "gpt-5.6-luna", brainCodexReasoning: "low",
   brainClaudeEffort: "low", logLevel: "info", thresholds: DEFAULT_THRESHOLDS, fake: false, hasTypesafeKey: false,
 };
 const input = { prompt: "add auth", cwd: "/tmp/x", project: { dir_name: "x", languages: [], frameworks: [], has_tests: false, has_ci: false, git_branch: undefined, is_git_repo: false }, history: [] } as any;

@@ -409,7 +409,9 @@ reads only `ANTHROPIC_API_KEY`, which subscription logins do not have.
 account; if `gpt-5.6-luna` is not available to you, set
 `JEV_BRAIN_CODEX_MODEL` to a light model you have.
 - One gate call per prompt, one brain run per analyzed prompt. Runs of one
-session go in order, at most two sessions at a time.
+session go in order. Two runs go at once across all sessions by default; more
+wait in line and none are dropped. Raise `JEV_BRAIN_CONCURRENCY` if you work in
+several sessions at the same time.
 - Codex support was built against Codex CLI 0.144 (hook payload `prompt`,
 `session_id`, `turn_id`, `transcript_path`; rollout `user_message` and
 `agent_message` lines for history). The trust-hash recipe follows Codex's source and can

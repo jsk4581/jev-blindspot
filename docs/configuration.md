@@ -26,6 +26,7 @@ needs a daemon restart (`jev-blindspot stop`, then the next prompt).
 | `JEV_BRAIN_CODEX_REASONING`                 | `low`           | `model_reasoning_effort` for the Codex brain                                                    |
 | `JEV_BRAIN_CLAUDE_EFFORT`                   | `low`           | `--effort` for the Claude brain (`low`, `medium`, `high`)                                       |
 | `JEV_BRAIN_TIMEOUT_MS`                      | `90000`         | brain wall-clock limit                                                                          |
+| `JEV_BRAIN_CONCURRENCY`                     | `2`             | brain runs at once across all sessions; more wait in line, none are dropped (daemon restart)    |
 | `JEV_PLAN_USD_PER_PERCENT`                  |                 | API-price dollars of brain use per 1% of your 5-hour plan limit; lets `usage` estimate plan share |
 
 
