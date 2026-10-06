@@ -399,7 +399,6 @@ that into a share of your plan.
 
 ## Known limits
 
-- Linux and macOS. Windows is untested.
 - The Claude brain needs Claude Code 2.1.278 or newer for `--json-schema`,
 `--effort` and `--permission-prompts none`. It runs with your settings, hooks
 and `CLAUDE.md` the way a session does; the jev-blindspot hook recognises the
