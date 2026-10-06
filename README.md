@@ -10,7 +10,7 @@
 
 jev-blindspot is a **prompt reviewer** for [Claude Code](https://claude.com/claude-code) and [Codex CLI](https://github.com/openai/codex) that runs alongside your session in a browser side panel.
 
-Each time you submit a prompt, it highlights what your request may have overlooked: missing context, unstated assumptions, or constraints that could affect the result. The review gives you another perspective on your request and helps you decide what may need clarification.
+Each time you submit a prompt, it highlights what your request may have overlooked, including missing context, unstated assumptions, or the underlying problem. The review helps you decide what may need clarification.
 
 It does not block your prompt, edit it, or add anything to the agent's context. Your prompt goes through as written, and you decide whether to act on the review.
 
