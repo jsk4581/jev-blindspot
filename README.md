@@ -8,18 +8,18 @@
 
 **Good results start with good requests.**
 
-jev-blindspot is a side panel for [Claude Code](https://claude.com/claude-code)
-and [Codex CLI](https://github.com/openai/codex). Each time you submit a prompt,
-the panel shows the prompt's blind spots: what the request would have needed to
-consider, and shows no sign of considering. It runs next to the session in a
-browser tab. It does not block the prompt, does not edit it, and does not add
-anything to the agent's context.
+jev-blindspot is a **prompt reviewer** for [Claude Code](https://claude.com/claude-code) and [Codex CLI](https://github.com/openai/codex) that runs alongside your session in a browser side panel.
+
+Each time you submit a prompt, it highlights what your request may have overlooked: missing context, unstated assumptions, or constraints that could affect the result. The review gives you another perspective on your request and helps you decide what may need clarification.
+
+It does not block your prompt, edit it, or add anything to the agent's context. Your prompt goes through as written, and you decide whether to act on the review.
+
 
 <p>
   <img src="https://raw.githubusercontent.com/jsk4581/jev-blindspot/main/docs/panel.png" alt="The jev-blindspot panel in a browser tab">
 </p>
 
-Also supports [Claude Code Mods](https://github.com/anthropics/claude-code/tree/main/mods), so you can view it directly in the CLI.
+Now supports [Claude Code Mods](https://github.com/anthropics/claude-code/tree/main/mods), so you can view it directly in the CLI.
 <p>
   <img src="https://raw.githubusercontent.com/jsk4581/jev-blindspot/main/docs/band.png" alt="The jev-blindspot band above the Claude Code prompt">
 </p>
