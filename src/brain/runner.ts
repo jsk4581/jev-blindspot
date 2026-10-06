@@ -23,7 +23,8 @@ export type BrainOutcome =
 
 export type BrainKind = "claude" | "codex";
 
-const STDOUT_MAX = 2 * 1024 * 1024;
+// stream-json carries every tool result (files read), so leave room.
+const STDOUT_MAX = 8 * 1024 * 1024;
 /** Read-only tools for the Claude brain; how much it reads is left to the effort level. */
 export const CLAUDE_TOOLS = "Read,Grep,Glob";
 
@@ -43,7 +44,8 @@ export function brainArgs(input: BrainInput, cfg: Config): string[] {
     cfg.brainClaudeEffort,
     "--no-session-persistence",
     "--output-format",
-    "json",
+    "stream-json",
+    "--verbose",
     "--json-schema",
     JSON.stringify(BRAIN_JSON_SCHEMA),
     "--system-prompt",
@@ -167,7 +169,7 @@ function runChild(input: BrainInput, cfg: Config, signal: AbortSignal, t0: numbe
       out += b.toString("utf8");
       if (out.length > STDOUT_MAX) {
         kill();
-        finish({ ok: false, message: "brain output exceeded 2MB", brain_ms: Date.now() - t0 });
+        finish({ ok: false, message: "brain output exceeded 8MB", brain_ms: Date.now() - t0 });
       }
     });
     child.stderr!.on("data", (b: Buffer) => {
@@ -188,18 +190,12 @@ function runClaude(input: BrainInput, cfg: Config, signal: AbortSignal, t0: numb
     env: { ...process.env, JEV_BLINDSPOT_CHILD: "1", MAX_THINKING_TOKENS: process.env.MAX_THINKING_TOKENS ?? "0" },
     collect: (out, code, tail) => {
       const brain_ms = Date.now() - t0;
-      const parsed = parseBrainOutput(out);
+      const { envelope, context } = claudeStream(out);
+      if (!envelope) return { ok: false, message: `no result in brain output (exit ${code})${tail ? ": " + tail : ""}`, brain_ms };
+      const parsed = parseBrainOutput(JSON.stringify(envelope));
       if (!parsed.ok) return { ok: false, message: `${parsed.message} (exit ${code})${tail ? ": " + tail : ""}`, brain_ms };
-      let model = cfg.brainModel;
-      let usage: BrainUsage | undefined;
-      try {
-        const env = JSON.parse(out);
-        if (typeof env?.model === "string") model = env.model;
-        usage = claudeUsage(env);
-      } catch {
-        /* keep alias */
-      }
-      return { ok: true, result: parsed.result, brain_ms, model, usage };
+      const model = typeof envelope?.model === "string" ? envelope.model : cfg.brainModel;
+      return { ok: true, result: parsed.result, brain_ms, model, usage: claudeUsage(envelope, context) };
     },
   });
 }
@@ -234,13 +230,54 @@ function runCodex(input: BrainInput, cfg: Config, signal: AbortSignal, t0: numbe
   });
 }
 
-/** `claude -p --output-format json` envelope: usage counts plus total_cost_usd and num_turns. */
-export function claudeUsage(env: any): BrainUsage | undefined {
+/** `claude -p --output-format stream-json --verbose` prints one event per line. The
+ *  final `result` event is the same envelope `--output-format json` prints; each
+ *  `assistant` event carries the usage of the request it answers, whose input side is
+ *  that request's whole context. Plain json output (one object) is accepted too. */
+export function claudeStream(out: string): { envelope: any; context?: number } {
+  let envelope: any;
+  let context: number | undefined;
+  for (const line of out.split("\n")) {
+    const t = line.trim();
+    if (!t.startsWith("{")) continue;
+    let e: any;
+    try {
+      e = JSON.parse(t);
+    } catch {
+      continue;
+    }
+    if (e?.type === "result") envelope = e;
+    const u = e?.type === "assistant" ? e.message?.usage : undefined;
+    if (u && typeof u.input_tokens === "number") {
+      const size = u.input_tokens + num(u.cache_read_input_tokens) + num(u.cache_creation_input_tokens);
+      context = Math.max(context ?? 0, size);
+    }
+  }
+  if (!envelope) {
+    try {
+      const whole = JSON.parse(out);
+      if (whole && typeof whole === "object" && !Array.isArray(whole)) envelope = whole;
+    } catch {
+      /* no envelope */
+    }
+  }
+  return { envelope, context };
+}
+
+function num(x: unknown): number {
+  return typeof x === "number" ? x : 0;
+}
+
+/** Usage from the result envelope (sums over the run) plus the largest request seen in the stream. */
+export function claudeUsage(env: any, context?: number): BrainUsage | undefined {
   const u = env?.usage;
   if (!u || typeof u.input_tokens !== "number" || typeof u.output_tokens !== "number") return undefined;
-  const cached = (typeof u.cache_read_input_tokens === "number" ? u.cache_read_input_tokens : 0) + (typeof u.cache_creation_input_tokens === "number" ? u.cache_creation_input_tokens : 0);
-  const usage: BrainUsage = { input_tokens: u.input_tokens + cached, output_tokens: u.output_tokens };
-  if (cached > 0) usage.cached_input_tokens = cached;
+  const read = num(u.cache_read_input_tokens);
+  const write = num(u.cache_creation_input_tokens);
+  const usage: BrainUsage = { input_tokens: u.input_tokens + read + write, output_tokens: u.output_tokens };
+  if (read > 0) usage.cached_input_tokens = read;
+  if (write > 0) usage.cache_write_tokens = write;
+  if (context && context > 0) usage.context_tokens = context;
   if (typeof env.total_cost_usd === "number") usage.cost_usd = env.total_cost_usd;
   if (typeof env.num_turns === "number") usage.turns = env.num_turns;
   return usage;
@@ -257,6 +294,7 @@ export function codexUsage(jsonl: string): BrainUsage | undefined {
       if (e?.type !== "turn.completed" || typeof u?.input_tokens !== "number" || typeof u?.output_tokens !== "number") continue;
       usage = { input_tokens: u.input_tokens, output_tokens: u.output_tokens };
       if (typeof u.cached_input_tokens === "number" && u.cached_input_tokens > 0) usage.cached_input_tokens = u.cached_input_tokens;
+      if (typeof u.cache_write_input_tokens === "number" && u.cache_write_input_tokens > 0) usage.cache_write_tokens = u.cache_write_input_tokens;
     } catch {
       /* partial line */
     }

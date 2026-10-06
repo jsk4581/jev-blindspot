@@ -77,12 +77,21 @@ export interface BrainItem {
   confidence: number;
 }
 
-/** What one brain run consumed, in the agent's own accounting. Cached tokens are
- *  the part of input served from cache; cost is only present when the agent reports it. */
+/** What one brain run consumed, in the agent's own accounting. A run makes several
+ *  requests (one per turn) and each resends the context, so the input figures are sums
+ *  over the run; `context_tokens` is the largest single request. Cost is only present
+ *  when the agent reports it. Records written before cache writes were split out
+ *  count them in `cached_input_tokens` and have no `cache_write_tokens`. */
 export interface BrainUsage {
+  /** all input sent over the run: uncached, cache reads and cache writes */
   input_tokens: number;
   output_tokens: number;
+  /** input served from the prompt cache */
   cached_input_tokens?: number;
+  /** input written to the prompt cache, priced above plain input */
+  cache_write_tokens?: number;
+  /** the largest single request of the run: the context the model saw at once */
+  context_tokens?: number;
   cost_usd?: number;
   turns?: number;
 }

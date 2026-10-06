@@ -123,7 +123,11 @@
   function usageText(u) {
     const L = I18N[uiLang()];
     const parts = [`${fmtTokens(u.input_tokens)} ${L.tok_in}`];
-    if (u.cached_input_tokens) parts[0] += ` (${fmtTokens(u.cached_input_tokens)} ${L.tok_cached})`;
+    const cache = [];
+    if (u.cached_input_tokens) cache.push(`${fmtTokens(u.cached_input_tokens)} ${L.tok_cached}`);
+    if (u.cache_write_tokens) cache.push(`${fmtTokens(u.cache_write_tokens)} ${L.tok_written}`);
+    if (cache.length) parts[0] += ` (${cache.join(", ")})`;
+    if (u.context_tokens) parts.push(`${fmtTokens(u.context_tokens)} ${L.tok_ctx}`);
     parts.push(`${fmtTokens(u.output_tokens)} ${L.tok_out}`);
     if (u.turns != null) parts.push(`${u.turns} ${L.tok_turns}`);
     if (u.cost_usd != null) parts.push(`$${u.cost_usd.toFixed(u.cost_usd < 0.1 ? 3 : 2)}`);

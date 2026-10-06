@@ -152,8 +152,10 @@ Each prompt becomes a card in the panel:
 
 
 Every finished card ends with a meta line: the agent, the gate time, the brain
-time, the model, the tokens it read (with how many came from cache), the tokens
-it wrote, and for the Claude brain the number of turns and the cost in dollars.
+time, the model, the input tokens summed over all of the brain's turns (with
+how many were read from the prompt cache and how many were written to it), the
+largest single request (the context the model saw at once), the tokens it
+wrote, and for the Claude brain the number of turns and the cost in dollars.
 The session list on the left sums the brain tokens per session, so you can see
 what the panel has spent on each project.
 

@@ -34,12 +34,28 @@ test("strict schema requires every property and allows a null suggestion", () =>
   assert.deepEqual(item.properties.suggestion.type, ["string", "null"]);
 });
 
-import { claudeUsage, codexUsage, codexFinalMessage } from "../src/brain/runner.js";
+import { claudeStream, claudeUsage, codexUsage, codexFinalMessage } from "../src/brain/runner.js";
 
-test("claudeUsage folds cache tokens into input and keeps cost and turns", () => {
-  const u = claudeUsage({ usage: { input_tokens: 100, output_tokens: 40, cache_read_input_tokens: 9000, cache_creation_input_tokens: 500 }, total_cost_usd: 0.0123, num_turns: 4 });
-  assert.deepEqual(u, { input_tokens: 9600, output_tokens: 40, cached_input_tokens: 9500, cost_usd: 0.0123, turns: 4 });
+test("claudeUsage sums input, keeps cache reads and writes apart, and keeps cost and turns", () => {
+  const u = claudeUsage({ usage: { input_tokens: 100, output_tokens: 40, cache_read_input_tokens: 9000, cache_creation_input_tokens: 500 }, total_cost_usd: 0.0123, num_turns: 4 }, 4200);
+  assert.deepEqual(u, { input_tokens: 9600, output_tokens: 40, cached_input_tokens: 9000, cache_write_tokens: 500, context_tokens: 4200, cost_usd: 0.0123, turns: 4 });
   assert.equal(claudeUsage({ result: "x" }), undefined);
+});
+
+test("claudeStream takes the result event as the envelope and the largest request as the context", () => {
+  const out = [
+    '{"type":"system","subtype":"init"}',
+    '{"type":"assistant","message":{"id":"a","usage":{"input_tokens":2,"cache_read_input_tokens":0,"cache_creation_input_tokens":7971,"output_tokens":17}}}',
+    '{"type":"user","message":{"content":[{"type":"tool_result"}]}}',
+    '{"type":"assistant","message":{"id":"b","usage":{"input_tokens":2,"cache_read_input_tokens":9750,"cache_creation_input_tokens":197,"output_tokens":25}}}',
+    '{"type":"result","subtype":"success","is_error":false,"structured_output":{"language":"en"},"usage":{"input_tokens":4,"output_tokens":42,"cache_read_input_tokens":9750,"cache_creation_input_tokens":8168},"num_turns":2}',
+  ].join("\n");
+  const { envelope, context } = claudeStream(out);
+  assert.equal(envelope.subtype, "success");
+  assert.equal(context, 9949);
+  // plain --output-format json output still parses
+  assert.equal(claudeStream('{"type":"result","usage":{}}').envelope.type, "result");
+  assert.equal(claudeStream("not json").envelope, undefined);
 });
 
 test("codexUsage reads the last turn.completed event; codexFinalMessage the last agent_message", () => {
@@ -51,6 +67,7 @@ test("codexUsage reads the last turn.completed event; codexFinalMessage the last
     '{"type":"turn.compl',
   ].join("\n");
   assert.deepEqual(codexUsage(jsonl), { input_tokens: 11599, output_tokens: 5, cached_input_tokens: 8960 });
+  assert.deepEqual(codexUsage('{"type":"turn.completed","usage":{"input_tokens":10,"cached_input_tokens":0,"cache_write_input_tokens":7,"output_tokens":1}}'), { input_tokens: 10, output_tokens: 1, cache_write_tokens: 7 });
   assert.equal(codexFinalMessage(jsonl), '{"language":"en"}');
   assert.equal(codexUsage(""), undefined);
 });
