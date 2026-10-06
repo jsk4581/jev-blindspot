@@ -13,6 +13,7 @@ import { buildGateState } from "../gate/state.js";
 import type { Exchange } from "../context/transcript.js";
 import { decideGate, hashPrompt, type SessionHistory } from "../gate/thresholds.js";
 import { runBrain } from "../brain/runner.js";
+import { appendUsage, USAGE_VERSION, type UsageRecord } from "../shared/usage.js";
 import { BrainQueue } from "./queue.js";
 import type { SessionStore } from "./store.js";
 import type { SseHub } from "./sse.js";
@@ -69,6 +70,11 @@ export class Pipeline {
     return true;
   }
 
+  /** Usage ledger line; the fake brain and gate are not real spend. */
+  private account(rec: UsageRecord): void {
+    if (!this.cfg.fake) appendUsage(rec);
+  }
+
   private emit(turn: Turn): void {
     this.hub.broadcast("turn", turn);
     const s = this.store.summaryOf(turn.session_id);
@@ -91,6 +97,7 @@ export class Pipeline {
         turn.state = "analyzing";
         turn.gate_failure = failure;
         this.store.update(turn, { v: PROTOCOL_VERSION, kind: "gate", turn_id: turn.turn_id, ts: Date.now(), state: "analyzing", failure, latency_ms: out.latency_ms });
+        this.account({ v: USAGE_VERSION, kind: "gate", ts: Date.now(), turn_id: turn.turn_id, agent: turn.agent, state: "analyzing" });
         this.emit(turn);
         this.enqueueBrain(turn, ev, state.project, state.history);
         return;
@@ -99,6 +106,7 @@ export class Pipeline {
       turn.gate_failure = failure;
       turn.error = { stage: "gate", message: out.message };
       this.store.update(turn, { v: PROTOCOL_VERSION, kind: "gate", turn_id: turn.turn_id, ts: Date.now(), state: "gate_unavailable", failure, latency_ms: out.latency_ms });
+      this.account({ v: USAGE_VERSION, kind: "gate", ts: Date.now(), turn_id: turn.turn_id, agent: turn.agent, state: "gate_unavailable" });
       this.emit(turn);
       return;
     }
@@ -117,12 +125,14 @@ export class Pipeline {
     if (decision.decision === "quiet") {
       turn.state = "quiet";
       this.store.update(turn, { v: PROTOCOL_VERSION, kind: "gate", turn_id: turn.turn_id, ts: now, state: "quiet", gate: out.answers, decision, latency_ms: out.latency_ms });
+      this.account({ v: USAGE_VERSION, kind: "gate", ts: Date.now(), turn_id: turn.turn_id, agent: turn.agent, state: "quiet" });
       this.emit(turn);
       return;
     }
     this.stats.analyzed++;
     turn.state = "analyzing";
     this.store.update(turn, { v: PROTOCOL_VERSION, kind: "gate", turn_id: turn.turn_id, ts: now, state: "analyzing", gate: out.answers, decision, latency_ms: out.latency_ms });
+    this.account({ v: USAGE_VERSION, kind: "gate", ts: Date.now(), turn_id: turn.turn_id, agent: turn.agent, state: "analyzing" });
     this.emit(turn);
     this.enqueueBrain(turn, ev, state.project, state.history);
   }
@@ -155,16 +165,19 @@ export class Pipeline {
           turn.brain_model = out.model;
           turn.brain_usage = out.usage;
           this.store.update(turn, { v: PROTOCOL_VERSION, kind: "brain", turn_id: turn.turn_id, ts: Date.now(), result: out.result, brain_ms: out.brain_ms, model: out.model, usage: out.usage });
+          this.account({ v: USAGE_VERSION, kind: "brain", ts: Date.now(), turn_id: turn.turn_id, agent: turn.agent, model: out.model, ok: true, brain_ms: out.brain_ms, usage: out.usage });
           this.log.info("brain", { turn: turn.turn_id, ms: out.brain_ms, items: out.result.items.length, domains: out.result.domains, tokens: out.usage ? out.usage.input_tokens + out.usage.output_tokens : undefined });
         } else if (out.cancelled) {
           turn.state = "cancelled";
           turn.cancel_reason = "shutdown";
           this.store.update(turn, { v: PROTOCOL_VERSION, kind: "cancelled", turn_id: turn.turn_id, ts: Date.now(), reason: "shutdown" });
+          if (out.usage) this.account({ v: USAGE_VERSION, kind: "brain", ts: Date.now(), turn_id: turn.turn_id, agent: turn.agent, ok: false, brain_ms: out.brain_ms, usage: out.usage });
         } else {
           this.stats.brain_fail++;
           turn.state = "error";
           turn.error = { stage: "brain", message: out.message };
           this.store.update(turn, { v: PROTOCOL_VERSION, kind: "error", turn_id: turn.turn_id, ts: Date.now(), stage: "brain", message: out.message });
+          this.account({ v: USAGE_VERSION, kind: "brain", ts: Date.now(), turn_id: turn.turn_id, agent: turn.agent, ok: false, brain_ms: out.brain_ms, usage: out.usage });
           this.log.warn("brain failed", { turn: turn.turn_id, ms: out.brain_ms, message: out.message.slice(0, 300) });
         }
         this.emit(turn);

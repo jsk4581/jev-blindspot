@@ -19,7 +19,7 @@ import { BRAIN_JSON_SCHEMA, BRAIN_JSON_SCHEMA_STRICT, parseBrainOutput } from ".
 
 export type BrainOutcome =
   | { ok: true; result: BrainResult; brain_ms: number; model: string; usage?: BrainUsage }
-  | { ok: false; message: string; brain_ms: number; cancelled?: boolean };
+  | { ok: false; message: string; brain_ms: number; cancelled?: boolean; usage?: BrainUsage };
 
 export type BrainKind = "claude" | "codex";
 
@@ -115,6 +115,8 @@ interface ChildRun {
   stdin?: string;
   /** Turn (stdout, exit code, stderr tail) into the outcome once the child exits. */
   collect: (stdout: string, code: number | null, errTail: string) => BrainOutcome;
+  /** What a run that was cut short (timeout, cancel, oversize) had used so far. */
+  partial?: (stdout: string) => BrainUsage | undefined;
 }
 
 function runChild(input: BrainInput, cfg: Config, signal: AbortSignal, t0: number, run: ChildRun): Promise<BrainOutcome> {
@@ -126,6 +128,10 @@ function runChild(input: BrainInput, cfg: Config, signal: AbortSignal, t0: numbe
     const finish = (o: BrainOutcome) => {
       if (done) return;
       done = true;
+      if (!o.ok && !o.usage && run.partial) {
+        const usage = run.partial(out);
+        if (usage) o = { ...o, usage };
+      }
       clearTimeout(killTimer);
       signal.removeEventListener("abort", onAbort);
       resolve(o);
@@ -193,10 +199,11 @@ function runClaude(input: BrainInput, cfg: Config, signal: AbortSignal, t0: numb
       const { envelope, context } = claudeStream(out);
       if (!envelope) return { ok: false, message: `no result in brain output (exit ${code})${tail ? ": " + tail : ""}`, brain_ms };
       const parsed = parseBrainOutput(JSON.stringify(envelope));
-      if (!parsed.ok) return { ok: false, message: `${parsed.message} (exit ${code})${tail ? ": " + tail : ""}`, brain_ms };
+      if (!parsed.ok) return { ok: false, message: `${parsed.message} (exit ${code})${tail ? ": " + tail : ""}`, brain_ms, usage: claudeUsage(envelope, context) };
       const model = typeof envelope?.model === "string" ? envelope.model : cfg.brainModel;
       return { ok: true, result: parsed.result, brain_ms, model, usage: claudeUsage(envelope, context) };
     },
+    partial: (out) => claudeStream(out).partial,
   });
 }
 
@@ -224,9 +231,10 @@ function runCodex(input: BrainInput, cfg: Config, signal: AbortSignal, t0: numbe
         /* already gone */
       }
       const parsed = parseBrainOutput(text || codexFinalMessage(out));
-      if (!parsed.ok) return { ok: false, message: `${parsed.message} (exit ${code})${tail ? ": " + tail : ""}`, brain_ms };
+      if (!parsed.ok) return { ok: false, message: `${parsed.message} (exit ${code})${tail ? ": " + tail : ""}`, brain_ms, usage: codexUsage(out) };
       return { ok: true, result: parsed.result, brain_ms, model: cfg.brainCodexModel, usage: codexUsage(out) };
     },
+    partial: (out) => codexUsage(out),
   });
 }
 
@@ -234,9 +242,11 @@ function runCodex(input: BrainInput, cfg: Config, signal: AbortSignal, t0: numbe
  *  final `result` event is the same envelope `--output-format json` prints; each
  *  `assistant` event carries the usage of the request it answers, whose input side is
  *  that request's whole context. Plain json output (one object) is accepted too. */
-export function claudeStream(out: string): { envelope: any; context?: number } {
+export function claudeStream(out: string): { envelope: any; context?: number; partial?: BrainUsage } {
   let envelope: any;
   let context: number | undefined;
+  // per request (message id): the usage of its last event, for runs cut short before the result
+  const requests = new Map<string, any>();
   for (const line of out.split("\n")) {
     const t = line.trim();
     if (!t.startsWith("{")) continue;
@@ -251,6 +261,7 @@ export function claudeStream(out: string): { envelope: any; context?: number } {
     if (u && typeof u.input_tokens === "number") {
       const size = u.input_tokens + num(u.cache_read_input_tokens) + num(u.cache_creation_input_tokens);
       context = Math.max(context ?? 0, size);
+      requests.set(String(e.message?.id ?? requests.size), u);
     }
   }
   if (!envelope) {
@@ -261,7 +272,19 @@ export function claudeStream(out: string): { envelope: any; context?: number } {
       /* no envelope */
     }
   }
-  return { envelope, context };
+  let partial: BrainUsage | undefined;
+  if (requests.size) {
+    // Output counts in the stream can lag the final figure, so a partial run's output is a floor.
+    const sum = { input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 };
+    for (const u of requests.values()) {
+      sum.input_tokens += u.input_tokens;
+      sum.output_tokens += num(u.output_tokens);
+      sum.cache_read_input_tokens += num(u.cache_read_input_tokens);
+      sum.cache_creation_input_tokens += num(u.cache_creation_input_tokens);
+    }
+    partial = claudeUsage({ usage: sum }, context);
+  }
+  return { envelope, context, partial };
 }
 
 function num(x: unknown): number {

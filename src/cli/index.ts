@@ -1,4 +1,4 @@
-// CLI: start | stop | status | open | gate <prompt> | fixtures | install-hook | smoke
+// CLI: start | stop | status | open | gate <prompt> | fixtures | install-hook | smoke | usage
 import { spawn } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync, copyFileSync, appendFileSync, mkdirSync } from "node:fs";
 import { codexHookHash, codexStateKey, codexTrustToml } from "./codex-trust.js";
@@ -12,6 +12,7 @@ import { runGate } from "../gate/client.js";
 import { buildGateState } from "../gate/state.js";
 import { decideGate, hashPrompt } from "../gate/thresholds.js";
 import { healthy, readPid, pidAlive } from "../daemon/singleton.js";
+import { readUsage, seedUsage, summarizeUsage } from "../shared/usage.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..", "..", "..");
@@ -317,6 +318,40 @@ async function smoke(): Promise<void> {
   process.exitCode = 1;
 }
 
+/** `usage [--days N | --all] [--json]`: what the brain spent, from the usage ledger. */
+function usage(): void {
+  seedUsage();
+  const all = rest.includes("--all");
+  const di = rest.indexOf("--days");
+  const days = di >= 0 ? Number(rest[di + 1]) : 7;
+  if (!all && !(days > 0)) {
+    console.error("usage: jev-blindspot usage [--days N | --all] [--json]");
+    process.exitCode = 2;
+    return;
+  }
+  const recs = readUsage();
+  const to = Date.now();
+  const from = all ? (recs[0]?.ts ?? to) : to - days * 86_400_000;
+  const s = summarizeUsage(recs, from, to, cfg.planUsdPerPercent);
+  if (rest.includes("--json")) {
+    console.log(JSON.stringify(s, null, 2));
+    return;
+  }
+  const k = (n: number) => (n >= 1e6 ? `${(n / 1e6).toFixed(2)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}k` : String(Math.round(n)));
+  const pct = (x?: number) => (x == null ? "-" : `${Math.round(x * 100)}%`);
+  const usd = (x?: number) => (x == null ? "-" : `$${x < 1 ? x.toFixed(3) : x.toFixed(2)}`);
+  const day = (t: number) => new Date(t).toISOString().slice(0, 10);
+  const agents = Object.entries(s.by_agent).map(([a, n]) => `${a} ${n}`).join(", ");
+  console.log(`jev-blindspot usage, ${all ? "all records" : `last ${days} days`} (${day(s.from)} to ${day(s.to)})`);
+  console.log(`prompts checked   ${s.prompts}${agents ? `  (${agents})` : ""}`);
+  console.log(`brain runs        ${s.brain_runs}  (${pct(s.pass_rate)} of prompts${s.brain_failed ? `, ${s.brain_failed} failed` : ""})`);
+  console.log(`input tokens      ${k(s.input_tokens)}  (cache read ${k(s.cache_read_tokens)}, cache write ${k(s.cache_write_tokens)}), summed over every request`);
+  if (s.context_median != null) console.log(`context per run   median ${k(s.context_median)}, max ${k(s.context_max!)}  (largest single request)`);
+  console.log(`output tokens     ${k(s.output_tokens)}`);
+  console.log(`cost, API prices  ${usd(s.cost_usd)}  (median ${usd(s.cost_median)} per run, ${usd(s.cost_per_prompt)} per prompt checked)${s.cost_runs < s.brain_runs ? `; ${s.brain_runs - s.cost_runs} runs report no cost` : ""}`);
+  if (s.plan_percent != null) console.log(`plan estimate     about ${s.plan_percent.toFixed(1)}% of one 5-hour window in total  (JEV_PLAN_USD_PER_PERCENT=${cfg.planUsdPerPercent})`);
+}
+
 switch (cmd) {
   case "start": await start(); break;
   case "stop": await stop(); break;
@@ -326,7 +361,8 @@ switch (cmd) {
   case "fixtures": await fixtures(rest[0]); break;
   case "install-hook": installHook(rest); break;
   case "smoke": await smoke(); break;
+  case "usage": usage(); break;
   default:
-    console.log("usage: jev-blindspot <start|stop|status|open|gate <prompt>|fixtures [file]|install-hook [claude|codex|all] [--trust]|smoke [prompt]>");
+    console.log("usage: jev-blindspot <start|stop|status|open|gate <prompt>|fixtures [file]|install-hook [claude|codex|all] [--trust]|smoke [prompt]|usage [--days N|--all] [--json]>");
     process.exitCode = 2;
 }

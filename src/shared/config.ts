@@ -23,6 +23,8 @@ export interface Config {
   brainCodexReasoning: string;
   /** `claude -p --effort`; the only brake on how much the Claude brain reads */
   brainClaudeEffort: string;
+  /** API-price dollars of brain use that move the 5-hour plan meter by 1%; only used by `usage` */
+  planUsdPerPercent?: number;
   logLevel: "debug" | "info" | "warn" | "error";
   thresholds: Thresholds;
   /** M1 plumbing mode: stub gate and brain, no network. */
@@ -180,6 +182,7 @@ function build(): Config {
     brainCodexModel: env.JEV_BRAIN_CODEX_MODEL || "gpt-5.6-luna",
     brainCodexReasoning: env.JEV_BRAIN_CODEX_REASONING || "low",
     brainClaudeEffort: env.JEV_BRAIN_CLAUDE_EFFORT || "low",
+    planUsdPerPercent: Number(env.JEV_PLAN_USD_PER_PERCENT) > 0 ? Number(env.JEV_PLAN_USD_PER_PERCENT) : undefined,
     logLevel: (["debug", "info", "warn", "error"].includes(env.JEV_LOG_LEVEL || "")
       ? env.JEV_LOG_LEVEL
       : "info") as Config["logLevel"],

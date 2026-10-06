@@ -14,6 +14,10 @@ export const PATHS = {
   get sessionsDir() {
     return join(this.dataDir, "sessions");
   },
+  /** one line per gate decision and brain run, no prompt text; kept when session files are pruned */
+  get usageLog() {
+    return join(this.dataDir, "usage.jsonl");
+  },
   get spoolDir() {
     return join(this.stateDir, "spool");
   },

@@ -258,6 +258,7 @@ prompt.
 | `jev-blindspot gate "<prompt>" [--cwd dir]`               | run the gate only and print every probability                                           |
 | `jev-blindspot fixtures [file]`                           | run a fixture file through the gate; exit code is the number of mismatches              |
 | `jev-blindspot smoke [prompt]`                            | post one event and wait for the card to settle                                          |
+| `jev-blindspot usage [--days N\|--all] [--json]`          | what the brain spent: prompts, runs, tokens, context size, cost at API prices          |
 | `jev-blindspot install-hook [claude|codex|all] [--trust]` | register the hook and the `/blindspot` command; `--trust` also records Codex hook trust |
 
 
@@ -311,6 +312,9 @@ session of that agent.
 
 Locally, each session's prompts and results are appended to
 `~/.local/share/jev-blindspot/sessions/<session>.jsonl` and deleted after 30 days.
+`~/.local/share/jev-blindspot/usage.jsonl` keeps one line per gate decision and
+brain run (time, agent, model, token counts, cost; no prompt text) and is not
+deleted, so `jev-blindspot usage` can add up any period.
 Logs in `~/.local/state/jev-blindspot/` do not contain prompt text.
 
 The daemon listens on `127.0.0.1` only unless `JEV_BIND_EXTRA` adds an address.
@@ -335,6 +339,47 @@ require a token when you do.
 
 The full list, with defaults, is in
 [docs/configuration.md](https://github.com/jsk4581/jev-blindspot/blob/main/docs/configuration.md).
+
+## What it costs
+
+The gate decides which prompts reach the brain; in our own use about half of
+them do. The gate runs on TypeSafe and does not count against your Claude or
+ChatGPT plan. Each brain run reads the files it needs over a few requests, and
+every request resends the context, so input is summed over the run.
+
+### Claude Code
+
+One `claude -p` call on Sonnet 5.5, effort `low`, thinking off.
+
+| per brain run (median / p90 / max)  | clean Claude Code config  | heavy config (my own)     |
+| ----------------------------------- | ------------------------- | ------------------------- |
+| fixed context (first request)       | 5.1k                      | 14.3k                     |
+| largest request                     | 7.2k / 11.9k / 14.0k      | 15.9k / 17.5k / 21.7k     |
+| input summed over the run           | 23.6k / 37.6k / 65.0k     | 44.7k / 62.0k / 89.8k     |
+| written to the prompt cache         | 2.0k                      | 11.7k                     |
+| output                              | 1.2k / 2.2k / 2.7k        | 1.2k / 2.1k / 2.8k        |
+| cost at API list prices             | $0.026 / $0.053 / $0.072  | $0.068 / $0.081 / $0.105  |
+| share of the 5-hour limit on Max 5x | about 0.05%               | about 0.14%               |
+
+The heavy config loads many skills, a long CLAUDE.md and memory into every
+session. The brain loads them too, and since they are rewritten to the prompt
+cache on every run, they account for most of the difference. On Max 5x, about
+$0.50 of brain use at API prices moved the 5-hour meter by 1%; the weekly
+meter did not move over 48 runs.
+
+### Codex CLI
+
+One `codex exec` call on gpt-5.6-luna, reasoning `low`. Measurement in
+progress.
+
+### Measuring your own
+
+The figures above were measured in October 2026 with
+`scripts/bench-brain.mjs`: 24 prompts against this repository, run twice. Plan
+limits are set by the vendors and change, and the meters only report whole
+percents. Run the script on your own setup, and use `jev-blindspot usage` to
+see what the brain has spent over time; set `JEV_PLAN_USD_PER_PERCENT` to turn
+that into a share of your plan.
 
 ## Known limits
 

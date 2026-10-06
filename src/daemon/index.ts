@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { loadConfig } from "../shared/config.js";
 import { FileLogger } from "../shared/log.js";
 import { PATHS, ensureDir } from "../shared/paths.js";
+import { seedUsage } from "../shared/usage.js";
 import { isPromptSubmittedEvent } from "../shared/protocol.js";
 import { Pipeline } from "./pipeline.js";
 import { createHandler, listenAll } from "./server.js";
@@ -33,6 +34,9 @@ async function main(): Promise<void> {
   const rebuilt = store.rebuild();
   store.markInterrupted();
   if (rebuilt) log.info("rebuilt store", { records: rebuilt });
+  // The usage ledger outlives the session files: seed it from them before the first prune.
+  const seeded = seedUsage();
+  if (seeded) log.info("seeded usage ledger", { records: seeded });
   store.prune(30);
 
   const hub = new SseHub();
