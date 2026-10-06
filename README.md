@@ -18,13 +18,13 @@ anything to the agent's context.
 <p align="center">
   <img src="https://raw.githubusercontent.com/jsk4581/jev-blindspot/main/docs/panel.png" alt="The jev-blindspot panel in a browser tab">
   <br>
-  <em>The panel, in a browser tab next to the session</em>
+  &lt;The panel, in a browser tab next to the session&gt;
 </p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/jsk4581/jev-blindspot/main/docs/band.png" alt="The jev-blindspot band above the Claude Code prompt">
   <br>
-  <em>The same result above the Claude Code prompt, from the optional mod</em>
+  &lt;The same result above the Claude Code prompt, from the optional mod&gt;
 </p>
 
 ## Quick start
