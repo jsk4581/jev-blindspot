@@ -15,9 +15,11 @@ consider, and shows no sign of considering. It runs next to the session in a
 browser tab. It does not block the prompt, does not edit it, and does not add
 anything to the agent's context.
 
-![panel](https://raw.githubusercontent.com/jsk4581/jev-blindspot/main/docs/panel.png)
+![panel](https://raw.githubusercontent.com/jsk4581/jev-blindspot/main/docs/panel.png)<br>
+<sub>The panel, in a browser tab next to the session</sub>
 
-![The jev-blindspot band above the Claude Code prompt, listing three blind spots](https://raw.githubusercontent.com/jsk4581/jev-blindspot/main/docs/band.png)
+![The jev-blindspot band above the Claude Code prompt, listing three blind spots](https://raw.githubusercontent.com/jsk4581/jev-blindspot/main/docs/band.png)<br>
+<sub>The same result above the Claude Code prompt, from the optional mod</sub>
 
 ## Quick start
 
