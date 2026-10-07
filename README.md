@@ -8,7 +8,7 @@
 
 **Good results start with good requests.**
 
-jev-blindspot is a **prompt reviewer** for [Claude Code](https://claude.com/claude-code) and [Codex CLI](https://github.com/openai/codex) that runs alongside your session in a browser side panel.
+jev-blindspot is a **prompt reviewer** for [Claude Code](https://claude.com/claude-code) and [Codex CLI](https://github.com/openai/codex) that runs alongside your session and shows its reviews in a local web UI.
 
 Each time you submit a prompt, [Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) decides whether a review is needed. If so, a lightweight model provides quick feedback on what your request may have overlooked, including missing context, unstated assumptions, or the underlying problem. The review helps you decide what may need clarification.
 
@@ -16,7 +16,7 @@ It does not block your prompt, edit it, or add anything to the agent's context. 
 
 
 <p>
-  <img src="https://raw.githubusercontent.com/jsk4581/jev-blindspot/main/docs/panel.png" alt="The jev-blindspot panel in a browser tab">
+  <img src="https://raw.githubusercontent.com/jsk4581/jev-blindspot/main/docs/panel.png" alt="The jev-blindspot web UI in a browser tab">
 </p>
 
 Now supports [Claude Code Mods](https://github.com/anthropics/claude-code/tree/main/mods), so you can view it directly in the CLI.
@@ -56,10 +56,10 @@ For Codex, also trust the new hook once: `jev-blindspot install-hook codex --tru
 or `/hooks` inside Codex. Details in [Install](#install).
 
 Then type `/blindspot` in Claude Code, or `/prompts:blindspot` in Codex. The
-panel URL comes back in the session at once, with no model turn spent. Open it
+web UI's URL comes back in the session at once, with no model turn spent. Open it
 in a browser tab next to the session and keep working as usual.
 
-From then on, every prompt you submit becomes a card in the panel: quiet when
+From then on, every prompt you submit becomes a card in the web UI: quiet when
 there is nothing to consider, otherwise the blind spots of that request, each
 with a sentence you can paste into the next prompt. The card also shows what
 the check cost: the model, the time, the tokens in and out, and for Claude the
@@ -85,7 +85,7 @@ consider. That happens in the background while the agent is already working,
 and the result appears in a separate tab, where you can fold it into the next
 request. Nothing is inserted into the session.
 
-The panel reviews the request only. It does not inspect or predict what the
+jev-blindspot reviews the request only. It does not inspect or predict what the
 assistant does with it. It is a thinking aid: it keeps showing you the
 questions you did not know to ask, in work you know well and in work you do
 not.
@@ -142,16 +142,16 @@ the author has not asked, the brain also names that one, at most one per turn,
 and the card shows it above the blind spots as the deeper question. Most turns
 have none.  
 Latency depends on your plan, region and how much the model decides to read;  
-the panel shows the analyzing state as soon as the gate passes.
+the web UI shows the analyzing state as soon as the gate passes.
 
 **Quiet turns stay visible.** Acknowledgements, follow-ups and small
 mechanical edits produce a one-line quiet card with the gate's probabilities,
-so you can see why the panel stayed quiet and adjust the threshold when a
+so you can see why the card stayed quiet and adjust the threshold when a
 decision looks wrong.
 
 ## What you see
 
-Each prompt becomes a card in the panel:
+Each prompt becomes a card in the web UI:
 
 
 | state            | shown                                                                                                                                  |
@@ -170,15 +170,15 @@ how many were read from the prompt cache and how many were written to it), the
 largest single request (the context the model saw at once), the tokens it
 wrote, and for the Claude brain the number of turns and the cost in dollars.
 The session list on the left sums the brain tokens per session, so you can see
-what the panel has spent on each project.
+what the reviews have spent on each project.
 
-Items are written in the language of the prompt, whatever it is. The panel's
+Items are written in the language of the prompt, whatever it is. The web UI's
 own labels follow the browser language and can be pinned in settings
 (English, Korean, Japanese, Chinese, Spanish, French, German, Portuguese,
 Russian, Italian). Sessions are listed on the left by project directory; the
-panel switches to the session that last received a prompt.
+web UI switches to the session that last received a prompt.
 
-The gear in the top bar opens settings: the panel language, which brain runs,
+The gear in the top bar opens settings: the web UI language, which brain runs,
 the Claude and Codex models, the effort level of each, and the jev model.
 Saving writes `~/.config/jev-blindspot/env` and applies to the running daemon
 at once. The Codex model list comes from what Codex has cached for your
@@ -216,10 +216,10 @@ From source instead: `git clone`, `npm install`, `npm run build`, then use
 
 The hook goes into `hooks.UserPromptSubmit` in `~/.claude/settings.json` and
 runs from the next prompt on. `install-hook` also writes
-`~/.claude/commands/blindspot.md`, so `/blindspot` prints the panel URL: the
+`~/.claude/commands/blindspot.md`, so `/blindspot` prints the web UI's URL: the
 hook answers it itself and blocks the prompt, so no model turn is spent.
 `/blindspot status` adds daemon counters. Prompts show a `claude` tag in the
-panel and their brain run is `claude -p` on your subscription.
+web UI and their brain run is `claude -p` on your subscription.
 
 jev-blindspot also works as a Claude Code mod. With Claude Code 2.1.287 or
 newer, the `jev-blindspot-band` mod draws a summary of the last prompt in the
@@ -230,7 +230,7 @@ terminal:
 
 It shows "checking" as soon as you send a prompt, then the blind spot count,
 the deeper question when there is one, and every finding, with a link to the
-panel for the full card. The mod only reads results from the local daemon: the
+web UI for the full card. The mod only reads results from the local daemon: the
 hook above still sends the prompt, and the mod changes nothing Claude reads.
 Install it from this repository:
 
@@ -251,16 +251,16 @@ definition, so after `jev-blindspot install-hook codex` either open Codex and
 trust `jev-blindspot` under `/hooks`, or run
 `jev-blindspot install-hook codex --trust`, which writes the same
 `[hooks.state]` entry to `~/.codex/config.toml` that `/hooks` would (backup
-taken first). Prompts show a `codex` tag in the panel and their brain run is
+taken first). Prompts show a `codex` tag in the web UI and their brain run is
 `codex exec` on your ChatGPT login.
 
-The hook starts the daemon on the first prompt. To open the panel, type
+The hook starts the daemon on the first prompt. To open the web UI, type
 `/blindspot` in Claude Code or `/prompts:blindspot` in Codex: the URL is
 printed into the session by the hook itself, without a model turn, so it is
 the fastest way to get there from where you already are. `/blindspot status`
 adds daemon counters. Outside a session, `jev-blindspot open` prints the same
-URL, and the panel is at `http://127.0.0.1:7461/` by default. The daemon exits
-after 30 idle minutes when no panel is attached and comes back with the next
+URL, and the web UI is at `http://127.0.0.1:7461/` by default. The daemon exits
+after 30 idle minutes when no web UI tab is open and comes back with the next
 prompt.
 
 ## Use
@@ -269,7 +269,7 @@ prompt.
 | command                                                   | what it does                                                                            |
 | --------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | `jev-blindspot status`                                    | daemon, gate key, brain, hook and config state                                          |
-| `jev-blindspot open`                                      | print the panel URL                                                                     |
+| `jev-blindspot open`                                      | print the web UI's URL                                                                  |
 | `jev-blindspot start` / `stop`                            | manage the daemon by hand                                                               |
 | `jev-blindspot gate "<prompt>" [--cwd dir]`               | run the gate only and print every probability                                           |
 | `jev-blindspot fixtures [file]`                           | run a fixture file through the gate; exit code is the number of mismatches              |
@@ -334,23 +334,23 @@ deleted, so `jev-blindspot usage` can add up any period.
 Logs in `~/.local/state/jev-blindspot/` do not contain prompt text.
 
 The daemon listens on `127.0.0.1` only unless `JEV_BIND_EXTRA` adds an address.
-On any added address, anyone who can reach the port can read the panel; set
+On any added address, anyone who can reach the port can open the web UI; set
 `JEV_TOKEN` to require one. The routes that accept prompts and stop the daemon
 take loopback connections only; the settings route accepts any allowed host,
-since a reader of the panel already sees every prompt and the settings only
+since anyone who can open the web UI already sees every prompt and the settings only
 choose models.
 
 ## Configuration
 
 Everything lives in `~/.config/jev-blindspot/env`, one `KEY=VALUE` per line;
-environment variables take precedence. The settings dialog in the panel covers
+environment variables take precedence. The settings dialog in the web UI covers
 the models and effort levels. The keys you are most likely to touch by hand:
 
 - `TYPESAFE_API_KEY`: the gate key, required.
 - `JEV_WORTH_MIN` (default `0.65`): the `worth_checking` probability from which
 a prompt is analyzed. Run `jev-blindspot gate "<prompt>"` on a few of your own
 prompts and move it until quiet and analyze match what you would want.
-- `JEV_BIND_EXTRA` and `JEV_TOKEN`: reach the panel from another machine, and
+- `JEV_BIND_EXTRA` and `JEV_TOKEN`: reach the web UI from another machine, and
 require a token when you do.
 
 The full list, with defaults, is in
@@ -430,7 +430,7 @@ Layout: `bin/` (the dependency-free hook and the CLI launcher), `src/cli/`
 (commands, Codex trust recipe), `src/daemon/`
 (HTTP, SSE, store, pipeline), `src/gate/` (jev state, questions, thresholds),
 `src/brain/` (prompt, schema, `claude -p` and `codex exec` runners), `src/context/` (repository
-scan, transcript tail), `web/` (the panel, no build step; labels in `i18n.js`).
+scan, transcript tail), `web/` (the web UI, no build step; labels in `i18n.js`).
 
 jev-blindspot is a community project and is not affiliated with TypeSafe.
 

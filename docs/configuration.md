@@ -1,7 +1,7 @@
 # Configuration
 
 `~/.config/jev-blindspot/env`, one `KEY=VALUE` per line. Environment variables
-take precedence. The panel's settings dialog edits the brain and gate model
+take precedence. The web UI's settings dialog edits the brain and gate model
 keys in this file and applies them to the running daemon; every other key
 needs a daemon restart (`jev-blindspot stop`, then the next prompt).
 
